@@ -1,0 +1,46 @@
+name: "Build notification"
+description: "Notify over slack of build pipeline statuses"
+inputs:
+  text:
+    description: Text of the notification
+    required: true
+    default: "🚨☠️ Build is failing! ☠️🚨"
+  webhook:
+    description: Slack webhook to use to post the message
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Post to Slack
+      uses: slackapi/slack-github-action@v1.16.0
+      with:
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "${{ inputs.text }}"
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repo:*\n<https://github.com/${{ github.repository }}|${{ github.repository }} >"
+                  },
+
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Workflow Run:*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} | Workflow >"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.webhook }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
